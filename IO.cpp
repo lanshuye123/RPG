@@ -36,10 +36,10 @@ void IOLoad(GameData* GD,const char* SaveName) {
 	fclose(Save);
 }
 
-void IOMapLoad(Map* Map, int MapId) {
+void IOMapLoad(Map* PMap, int MapId) {
 	//先释放可能存在的上次的地图中的Map信息，防止内存占用过大
-	if (Map->Blocks != NULL)free(Map->Blocks);
-	if (Map->Events != NULL)free(Map->Events);
+	if (PMap->Blocks != NULL)free(PMap->Blocks);
+	if (PMap->Events != NULL)free(PMap->Events);
 
 	//获取地图名称
 	char* mapname = (char*)malloc(sizeof(char) * 36);
@@ -48,25 +48,38 @@ void IOMapLoad(Map* Map, int MapId) {
 
 	//打开地图并载入
 	FILE* PtrMap = fopen(mapname,"rb");
-	free(mapname);
 	if (PtrMap == NULL) {
-		printf("地图载入失败:文件 %s 不存在", mapname);
+		printf("地图载入失败:文件 %s 不存在\r\n", mapname);
 		return;
 	};
+	free(mapname);
+	fread(PMap, sizeof(Map), 1, PtrMap);
 
-	//读取地图基本信息
-	if (Map->Size.height * Map->Size.width > 0) {
-		Map->Blocks = (Block*)malloc(sizeof(int) * (Map->Size.height * Map->Size.width));
-		if (Map->Blocks == NULL || fread(Map->Blocks, sizeof(int), (Map->Size.height * Map->Size.width), PtrMap) != (Map->Size.height * Map->Size.width)) {
-			printf("地图载入失败。");
+	//读取地图Block信息
+	if (PMap->Size.height * PMap->Size.width > 0) {
+		PMap->Blocks = (Block*)malloc(sizeof(Block) * (PMap->Size.height * PMap->Size.width));
+		if (PMap->Blocks == NULL || fread(PMap->Blocks, sizeof(Block), (PMap->Size.height * PMap->Size.width), PtrMap) != (PMap->Size.height * PMap->Size.width)) {
+			printf("地图Blocks载入失败。\r\n");
 		}
 	}
 
 	//获取地图事件信息
-	if (Map->EventNum > 0) {
-		Map->Events = (MapGameEvent*)malloc(sizeof(MapGameEvent) * Map->EventNum);
-		if (Map->Events == NULL || fread(Map->Events, sizeof(MapGameEvent), Map->EventNum, PtrMap)) {
-			printf("地图载入失败。");
+	if (PMap->EventNum > 0) {
+		PMap->Events = (MapGameEvent*)malloc(sizeof(MapGameEvent) * PMap->EventNum);
+		if (PMap->Events == NULL || fread(PMap->Events, sizeof(MapGameEvent), PMap->EventNum, PtrMap)) {
+			printf("地图Events载入失败。\r\n");
 		};
 	}
+}
+
+void DBGIOMapSave(Map* PMap, int MapId) {
+	char* mapname = (char*)malloc(sizeof(char) * 36);
+	if (mapname == NULL)return;
+	sprintf(mapname, "maps/%d.map", MapId);
+	FILE* PtrMap = fopen(mapname, "wb");
+	free(mapname);
+	fwrite(PMap, sizeof(Map), 1, PtrMap);
+	fwrite(PMap->Blocks, sizeof(Block), PMap->Size.height * PMap->Size.width, PtrMap);
+	fwrite(PMap->Events, sizeof(MapGameEvent), PMap->EventNum, PtrMap);
+	fclose(PtrMap);
 }

@@ -2,9 +2,6 @@
 
 #include <Windows.h>
 
-#define frameW 800
-#define frameH 640
-
 #define GameName "RPG：勇者赞歌"
 
 struct GameData GD;
@@ -29,8 +26,6 @@ signed main() {
 		select = UITitle();
 	}
 	GDDefaultGenerator(&GD);
-	//IOSave(&GD, "SAVE000.SAVE");
-	//UIAlert(TEXT("\r\n[提示]\r\n游戏本体尚未制作"));
 	GameRender(&GD);
 }
 

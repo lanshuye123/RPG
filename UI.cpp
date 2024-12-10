@@ -59,3 +59,23 @@ int UITitle() {
 	}
 	return 0;
 }
+
+void UITalk(const wchar_t* name, const wchar_t* str) {
+	RECT Discuss = { 10 + -(frameH * 3 / 4 + 10 - frameH + 10) , frameH * 3 / 4 + 10 , frameW - 10 , frameH - 10};
+	settextstyle(48, 0, _T("思源宋体"));
+	setfillcolor(BLUE);
+	settextcolor(WHITE);
+	fillrectangle(5 , frameH * 3 / 4 + 5, frameW - 5, frameH - 5);
+	drawtext(name, &Discuss, DT_LEFT);
+	Discuss = { 10 + -(frameH * 3 / 4 + 10 - frameH + 10) , frameH * 3 / 4 + 10 + 48 , frameW - 10 , frameH - 10 };
+	settextstyle(36, 0, _T("思源宋体"));
+	drawtext(str, &Discuss, DT_LEFT);
+	flushmessage(EX_KEY);
+	ExMessage EMS;
+	while (1) {
+		EMS = getmessage(EX_KEY);
+		if (EMS.message != WM_KEYUP)continue;
+		if (EMS.vkcode == 13)break;
+	}
+	return;
+}

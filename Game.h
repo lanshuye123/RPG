@@ -4,7 +4,7 @@
 #include <graphics.h>
 #include <conio.h>
 
-#define frameW 800
+#define frameW 768
 #define frameH 640
 
 struct Pos {
@@ -71,3 +71,16 @@ void MapRender(IMAGE* CanvasHandle, Map* Map);
 void IOMapLoad(Map* Map, int MapId);
 
 #define BlockSize 64
+
+#define DEBUG
+
+#ifdef DEBUG
+
+void DBGIOMapSave(Map* Map, int MapId);
+
+#endif // DEBUG
+
+
+void ActiveEvent(GameEvent* Ev, GameData* GD);
+
+void UITalk(const wchar_t* name, const wchar_t* str);
