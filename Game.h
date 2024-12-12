@@ -3,8 +3,9 @@
 #define DEBUG
 
 #include <stdio.h>
-#include <graphics.h>
-#include <conio.h>
+#include "graphics.h"
+#pragma comment(lib,"EasyXw.lib")
+#pragma comment(lib,"EasyXa.lib")
 
 #include "bass.h"
 #pragma comment(lib,"bass.lib")

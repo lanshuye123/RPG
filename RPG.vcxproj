@@ -149,7 +149,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bass.h" />
+    <ClInclude Include="easyx.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="graphics.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="debug.txt" />
