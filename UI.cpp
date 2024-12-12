@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "bass.h"
 
 void UIAlert(LPCTSTR notice) {
 	RECT alert = { frameW / 3, frameH / 4, frameW * 2 / 3 , frameH * 3 / 4 };
@@ -15,6 +16,8 @@ void UIAlert(LPCTSTR notice) {
 }
 
 int UITitle() {
+	HSTREAM TitleBGM = BASS_StreamCreateFile(false, "Assets\\titlebgm.mp3", 0, 0, BASS_SAMPLE_LOOP);
+	BASS_ChannelPlay(TitleBGM, false);
 	IMAGE TitleIMG;
 	loadimage(&TitleIMG, TEXT("yzdel.png"), frameW, frameH, 0);
 	cleardevice();
@@ -29,17 +32,19 @@ int UITitle() {
 	while (1) {
 		getmessage(&EMS, EX_KEY);
 		if (EMS.message != WM_KEYUP)continue;
-		if (EMS.vkcode == 40) {
+		if (EMS.vkcode == 0x53 || EMS.vkcode == 40) {
 			//下
 			select++;
 			if (select > 2) select = 0;
 		}
-		if (EMS.vkcode == 38) {
+		if (EMS.vkcode == 0x57 || EMS.vkcode == 38) {
 			//上
 			select--;
 			if (select < 0) select = 2;
 		}
 		if (EMS.vkcode == 13) {
+			BASS_ChannelStop(TitleBGM);
+			BASS_StreamFree(TitleBGM);
 			//回车
 			if (select == 0) {
 				return 0;
@@ -49,6 +54,8 @@ int UITitle() {
 			}
 			if (select == 2) {
 				closegraph();
+				BASS_Stop();
+				BASS_Free();
 				exit(0);
 			}
 		}
@@ -69,7 +76,7 @@ void UITalk(const wchar_t* name, const wchar_t* str) {
 	drawtext(name, &Discuss, DT_LEFT);
 	Discuss = { 10 + -(frameH * 3 / 4 + 10 - frameH + 10) , frameH * 3 / 4 + 10 + 48 , frameW - 10 , frameH - 10 };
 	settextstyle(36, 0, _T("思源宋体"));
-	drawtext(str, &Discuss, DT_LEFT);
+	drawtext(str, &Discuss, DT_LEFT| DT_WORDBREAK);
 	flushmessage(EX_KEY);
 	ExMessage EMS;
 	while (1) {

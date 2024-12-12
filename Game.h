@@ -1,8 +1,13 @@
 #pragma once
 
+#define DEBUG
+
 #include <stdio.h>
 #include <graphics.h>
 #include <conio.h>
+
+#include "bass.h"
+#pragma comment(lib,"bass.lib")
 
 #define frameW 768
 #define frameH 640
@@ -14,7 +19,7 @@ struct Pos {
 //сно╥пео╒
 struct GameData {
 	int Mapid;
-	Pos PlayerPos;
+	struct Pos PlayerPos;
 	struct Player {
 		int Level;
 		int HP;
@@ -43,8 +48,8 @@ struct GameEvent {
 };
 
 struct MapGameEvent {
-	 GameEvent Event;
-	 Pos Pos;
+	 struct GameEvent Event;
+	 struct Pos Pos;
 	 int Image;
 };
 
@@ -67,12 +72,12 @@ void UIMenu();
 void GameRender(GameData* GD);
 
 void MapRender(IMAGE* CanvasHandle, Map* Map);
+void MainRender(Map* MapPtr, GameData* GD);
+void PlayerRender(IMAGE* CanvasHandle, Pos Position);
 
 void IOMapLoad(Map* Map, int MapId);
 
 #define BlockSize 64
-
-#define DEBUG
 
 #ifdef DEBUG
 

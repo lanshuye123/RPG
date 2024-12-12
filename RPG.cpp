@@ -14,7 +14,7 @@ signed main() {
 	printf("程序作者:纳米2班 姜春旺\r\n");
 	HWND GameUI = initgraph(frameW, frameH);
 	SetWindowText(GameUI, TEXT("R.P.G 勇者赞歌 作者:纳米2班姜春旺"));
-
+	BASS_Init(-1, 44100, 0, GameUI, 0);
 	DefaultWinProc = (WNDPROC)GetWindowLongPtr(GameUI, GWLP_WNDPROC);
 	SetWindowLongPtr(GameUI, GWLP_WNDPROC, (LONG_PTR)SubclassProc);
 
@@ -27,6 +27,7 @@ signed main() {
 	}
 	GDDefaultGenerator(&GD);
 	GameRender(&GD);
+	BASS_Free();
 }
 
 //生成默认游戏数据
