@@ -1,0 +1,27 @@
+{
+    "Events":[{
+        "PosX":10,
+        "PosY":20,
+        "Image":0,
+        "Walkable":false,
+        "EventNodes":[{
+            "EventCode":0,
+            "Flags":0
+        },{
+            "EventCode":1,
+            "Flags":1
+        }]
+    },{
+        "PosX":10,
+        "PosY":29,
+        "Image":0,
+        "Walkable":false,
+        "EventNodes":[{
+            "EventCode":0,
+            "Flags":0
+        },{
+            "EventCode":1,
+            "Flags":3
+        }]
+    }]
+}

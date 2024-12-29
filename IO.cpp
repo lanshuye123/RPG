@@ -1,16 +1,17 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "Game.h"
 
 void IOSave(GameData* GD,const char* SaveName) {
-	FILE* Save = fopen(SaveName, "wb");
-	fwrite(GD, sizeof(GameData), 1, Save);
-	fclose(Save);
+	FILE* Save;
+	if (fopen_s(&Save, SaveName, "wb") == 0) {
+		fwrite(GD, sizeof(GameData), 1, Save);
+		fclose(Save);
+	};
 }
 
 //检查某存档是否存在
-int IOSaveExists(const char* SaveName) {
-	FILE* Save = fopen(SaveName, "r"); // 尝试以只读方式打开文件
+int IOExists(const char* SaveName) {
+	FILE* Save;
+	fopen_s(&Save,SaveName, "r"); // 尝试以只读方式打开文件
 	if (Save != NULL) {
 		fclose(Save); // 如果文件存在，关闭文件
 		return 1; // 文件存在
@@ -27,9 +28,11 @@ int IOSaveExists(const char* SaveName) {
 }
 
 void IOLoad(GameData* GD,const char* SaveName) {
-	FILE* Save = fopen(SaveName, "rb");
+	FILE* Save;
+	fopen_s(&Save, SaveName, "rb");
 	if (Save == NULL) {
 		printf("存档载入失败。");
+		UIAlert(L"警告\r\n\r\n存档载入失败");
 		return;
 	};
 	fread(GD, sizeof(GameData), 1, Save);
@@ -37,19 +40,21 @@ void IOLoad(GameData* GD,const char* SaveName) {
 }
 
 void IOMapLoad(Map* PMap, int MapId) {
+
 	//先释放可能存在的上次的地图中的Map信息，防止内存占用过大
 	if (PMap->Blocks != NULL)free(PMap->Blocks);
-	if (PMap->Events != NULL)free(PMap->Events);
+	if (PMap->Events != NULL)EventCleaner(&(PMap->Events));
 
-	//获取地图名称
 	char* mapname = (char*)malloc(sizeof(char) * 36);
 	if (mapname == NULL)return;
-	sprintf(mapname, "maps/%d.map", MapId);
+	sprintf_s(mapname, 36, "maps/%d.map", MapId);
 
 	//打开地图并载入
-	FILE* PtrMap = fopen(mapname,"rb");
+	FILE* PtrMap;
+	fopen_s(&PtrMap, mapname, "rb");
 	if (PtrMap == NULL) {
 		printf("地图载入失败:文件 %s 不存在\r\n", mapname);
+		free(mapname);
 		return;
 	};
 	free(mapname);
@@ -62,24 +67,61 @@ void IOMapLoad(Map* PMap, int MapId) {
 			printf("地图Blocks载入失败。\r\n");
 		}
 	}
-
-	//获取地图事件信息
-	if (PMap->EventNum > 0) {
-		PMap->Events = (MapGameEvent*)malloc(sizeof(MapGameEvent) * PMap->EventNum);
-		if (PMap->Events == NULL || fread(PMap->Events, sizeof(MapGameEvent), PMap->EventNum, PtrMap)) {
-			printf("地图Events载入失败。\r\n");
-		};
-	}
+	PMap->Events = EventPraser(MapId);
+	//加载地图事件信息
 }
 
-void DBGIOMapSave(Map* PMap, int MapId) {
-	char* mapname = (char*)malloc(sizeof(char) * 36);
-	if (mapname == NULL)return;
-	sprintf(mapname, "maps/%d.map", MapId);
-	FILE* PtrMap = fopen(mapname, "wb");
-	free(mapname);
-	fwrite(PMap, sizeof(Map), 1, PtrMap);
-	fwrite(PMap->Blocks, sizeof(Block), PMap->Size.height * PMap->Size.width, PtrMap);
-	fwrite(PMap->Events, sizeof(MapGameEvent), PMap->EventNum, PtrMap);
-	fclose(PtrMap);
+//void DBGIOMapSave(Map* PMap, int MapId) {
+//	char* mapname = (char*)malloc(sizeof(char) * 36);
+//	if (mapname == NULL)return;
+//	sprintf(mapname, "maps/%d.map", MapId);
+//	FILE* PtrMap = fopen(mapname, "wb");
+//	free(mapname);
+//	fwrite(PMap, sizeof(Map), 1, PtrMap);
+//	fwrite(PMap->Blocks, sizeof(Block), PMap->Size.height * PMap->Size.width, PtrMap);
+//	fwrite(PMap->Events, sizeof(MapGameEvents), PMap->EventNum, PtrMap);
+//	fclose(PtrMap);
+//}
+
+
+/* 对话文件格式
+* 使用>id#标明对话ID，例如>1#表示1号对话
+*/
+void IOLoadDialog(char* strs[], int dialogid) {
+	FILE* Dialog;
+	fopen_s(&Dialog, "Assets\\Dialog.txt", "r");
+	if (Dialog == NULL) {
+		printf("对话载入失败。\r\n");
+		return;
+	};
+	char line[1024];
+	char talkid[36];
+	int talkid_len = sprintf_s(talkid, ">%d#", dialogid);
+
+	int line_id = 1;
+	int flag = false;
+	char* compdest =(char*) malloc((talkid_len + 1) * sizeof(char));
+	if (compdest == NULL)return;
+	while (fgets(line, 1024, Dialog) != NULL) {
+		line_id++;
+		strncpy_s(compdest, talkid_len + 1, line, talkid_len);
+		compdest[talkid_len] = '\0';
+		if (!strcmp(compdest, talkid)) {
+			flag = true;
+			break;
+		}
+	};
+	free(compdest);
+
+	if (flag) {
+		int inner_id = 0;
+		while (fgets(line, 1024, Dialog) != NULL) {
+			if (line[0] == '>')break;
+			strcpy_s(strs[inner_id], 256, line);
+			if (strs[inner_id][strlen(strs[inner_id]) - 1] == '\n')strs[inner_id][strlen(strs[inner_id]) - 1] = '\0';
+			inner_id++;
+		}
+	}
+
+	fclose(Dialog);
 }

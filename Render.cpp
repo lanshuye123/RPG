@@ -4,15 +4,21 @@
 IMAGE Tile;
 IMAGE PlayerAnimate;
 
+#define GenWalk(U,D,L,R) ((int)(pow(2,0)*(!!!U) + pow(2,1)*(!!!D) + pow(2,2)*(!!!L) + pow(2,3)*(!!!R)))
+
 void static MPInit(Map* MapPtr) {
-	MapPtr->Size.width = 10;
-	MapPtr->Size.height = 10;
-	MapPtr->EventNum = 0;
-	MapPtr->Events = (MapGameEvent*)malloc(sizeof(MapGameEvent) * 100);
-	MapPtr->Blocks = (Block*)malloc(sizeof(Block) * 100);
-	if (MapPtr->Blocks == NULL)exit(-1);
-	for (int i = 0; i < 100; i++) {
-		MapPtr->Blocks[i].id = i;
+	MapPtr->Size.width = 30;
+	MapPtr->Size.height = 30;
+	MapPtr->Events = NULL;
+
+	MapPtr->Blocks = (Block*)malloc(sizeof(Block) * 900);
+	if (MapPtr->Blocks == NULL) {
+		printf("MapERROR\r\n");
+		exit(-1);
+	};
+	for (int i = 0; i < 900; i++) {
+		MapPtr->Blocks[i].id = 0;
+		MapPtr->Blocks[i].walkable = GenWalk(1,1,1,1);
 	}
 }
 
@@ -21,14 +27,21 @@ void static MPInit(Map* MapPtr) {
 int DebugMode = 0;
 #define DebugFlag(A) (DebugMode & (int)pow(2, A)) >> A
 int DBGSelectBlock = 0;
-
-int PlayerLastMapid = -1;
 #endif // DEBUG
 
+int PlayerLastMapid = -1;
+
+#define QueryWalkZw(A,D) ((A & (int)pow(2, D) >> (D)))
+
+#define QueryWalk(Direction) (QueryWalkZw((MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable),Direction))
 int PlayerDirectStatus = 0;
 int PlayerPaceStatus = 0;
 
 void GameRender(GameData* GD) {
+
+	HSTREAM GameMainBGM = BASS_StreamCreateFile(false, "Assets\\GameBGM.mp3", 0, 0, BASS_SAMPLE_LOOP);
+	BASS_ChannelPlay(GameMainBGM, false);
+
 	loadimage(&Tile,TEXT("Assets\\tile.png"),0,0,true);
 	loadimage(&PlayerAnimate, TEXT("Assets\\Player.png"), 0, 0, true);
 	cleardevice();
@@ -45,114 +58,59 @@ void GameRender(GameData* GD) {
 		
 		if ((EMS.vkcode == 0x57 || EMS.vkcode == 0x26) && GD->PlayerPos.Y > 0) {
 			GD->PlayerPos.Y--;
+
+			printf("%d", (MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable));
+
+			if (QueryWalk(0)) GD->PlayerPos.Y++;
+			
 			if (PlayerDirectStatus == 3) PlayerPaceStatus += 1;
 			PlayerDirectStatus = 3;
 		}
 		if ((EMS.vkcode == 0x53 || EMS.vkcode == 0x28) && GD->PlayerPos.Y < MapPtr->Size.height - 1) {
 			GD->PlayerPos.Y++;
+			if (QueryWalk(1)) GD->PlayerPos.Y--;
 			if (PlayerDirectStatus == 0) PlayerPaceStatus += 1;
 			PlayerDirectStatus = 0;
 		}
 		if ((EMS.vkcode == 0x41 || EMS.vkcode == 0x25) && GD->PlayerPos.X > 0) {
 			GD->PlayerPos.X--;
+			if (QueryWalk(2)) GD->PlayerPos.X++;
 			if (PlayerDirectStatus == 1) PlayerPaceStatus += 1;
 			PlayerDirectStatus = 1;
 		}
 		if ((EMS.vkcode == 0x44 || EMS.vkcode == 0x27) && GD->PlayerPos.X < MapPtr->Size.width - 1) {
 			GD->PlayerPos.X++;
+			if (QueryWalk(3)) GD->PlayerPos.X--;
 			if (PlayerDirectStatus == 2) PlayerPaceStatus += 1;
 			PlayerDirectStatus = 2;
 		}
 
 		if (EMS.vkcode == 13) {
+			void ActiveTalk(int);
+			ActiveTalk(0);
 
+			for (int i = 0; i < MapPtr->Events->GECLen; i++) {
+
+			}
+			//for (int i = 0; i < MapPtr->EventNum; i++) {
+			//	if (MapPtr->Events[i].Pos.X == GD->PlayerPos.X && MapPtr->Events[i].Pos.Y == GD->PlayerPos.Y) {
+			//		ActiveEvent(&(MapPtr->Events[i].Event), GD);
+			//	}
+			//}
 		}
 
-#ifdef DEBUG
-
-		if (EMS.vkcode == 80) {
-			DebugMode = 1;
-			printf("调试模式已打开!\r\n按下O打开[按键回显]\r\n按下I打开[地图编辑器]\r\n按下U调试[对话]\r\n");
-			//3:按键回显，4:地图编辑器
-			//79,73,85,89
+		if (EMS.vkcode == VK_ESCAPE) {
+			UIMenu();
 		}
-
-		if (DebugMode) {
-			if (EMS.vkcode == 79) {
-				if (DebugFlag(3)) {
-					DebugMode -= 8;
-				}
-				else {
-					DebugMode += 8;
-				}
-				printf("按键回显状态:%d\r\n", DebugFlag(3));
-			}
-			if (EMS.vkcode == 73) {
-				if (DebugFlag(4)) {
-					DebugMode -= 16;
-				}
-				else {
-					DebugMode += 16;
-					printf("[地图编辑器]通过小键盘上下左右操作地编选中地格，-为block--，+为block++，5为重新渲染\r\n");
-				}
-				printf("地图编辑器状态:%d\r\n", DebugFlag(4));
-			}
-			if (EMS.vkcode == 85) {
-				printf("请输入要调试的对话:");
-				GameEvent ev = { 0,0 };
-				scanf_s("%d,%d", &(ev.EventCode), &(ev.Flags));
-				ActiveEvent(&ev, GD);
-			}
-			if (DebugFlag(3)) {
-				printf("[按键回显]%d\r\n", EMS.vkcode);
-			}
-			if (DebugFlag(4) && (EMS.vkcode >= 96 && EMS.vkcode <= 111)) {
-
-				// 104,98,100,102 上下左右
-				//0:96
-				if (EMS.vkcode == 104 || EMS.vkcode == 98 || EMS.vkcode == 100 || EMS.vkcode == 102) {
-					if (EMS.vkcode == 104) {
-						DBGSelectBlock -= MapPtr->Size.width;
-					}
-					if (EMS.vkcode == 98) {
-						DBGSelectBlock += MapPtr->Size.width;
-					}
-					if (EMS.vkcode == 100) {
-						DBGSelectBlock -= 1;
-					}
-					if (EMS.vkcode == 102) {
-						DBGSelectBlock += 1;
-					}
-					printf("[地图编辑器]当前选中<%d>=(%d,%d)\r\nBlockID:%d\r\n", DBGSelectBlock, DBGSelectBlock % MapPtr->Size.width, DBGSelectBlock / MapPtr->Size.width, MapPtr->Blocks[DBGSelectBlock].id);
-				}
-
-				//107+ 109-
-
-				if (EMS.vkcode == 107) {
-					MapPtr->Blocks[DBGSelectBlock].id += 1;
-					printf("[地图编辑器]当前选中<%d>=(%d,%d)\r\nBlockID:%d\r\n", DBGSelectBlock, DBGSelectBlock % MapPtr->Size.width, DBGSelectBlock / MapPtr->Size.width, MapPtr->Blocks[DBGSelectBlock].id);
-				}
-
-				if (EMS.vkcode == 109) {
-					MapPtr->Blocks[DBGSelectBlock].id -= 1;
-					printf("[地图编辑器]当前选中<%d>=(%d,%d)\r\nBlockID:%d\r\n", DBGSelectBlock, DBGSelectBlock % MapPtr->Size.width, DBGSelectBlock / MapPtr->Size.width, MapPtr->Blocks[DBGSelectBlock].id);
-				}
-
-				if (EMS.vkcode == 106) {
-					int mapid = 0;
-					printf("请输入要保存的mapid");
-					scanf_s("%d", &mapid);
-					DBGIOMapSave(MapPtr, mapid);
-				}
-
-
-				printf("[地图编辑器]已重新渲染地图\r\n");
-			}
-		}
-#endif // DEBUG
-
 	}
 }
+
+
+void ASyncRender() {
+	//MainRender(MapPtr, GD);
+}
+
+
 
 void MainRender(Map* MapPtr , GameData* GD) {
 	

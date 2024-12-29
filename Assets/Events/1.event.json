@@ -1,0 +1,12 @@
+{
+    "Events":[{
+        "PosX":20,
+        "PosY":20,
+        "Image":0,
+        "Walkable":false,
+        "EventNodes":[{
+            "EventCode":0,
+            "Flags":0
+        }]
+    }]
+}

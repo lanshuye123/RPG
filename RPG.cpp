@@ -1,5 +1,4 @@
 ﻿#include "Game.h"
-
 #include <Windows.h>
 
 #define GameName "RPG：勇者赞歌"
@@ -21,12 +20,12 @@ signed main() {
 	setbkmode(TRANSPARENT);
 	settextstyle(32, 0, _T("思源宋体"));
 	int select = UITitle();
-	while (select == 1) {
-		UIAlert(TEXT("\r\n[提示]\r\n读档功能尚未制作"));
-		select = UITitle();
-	}
 	GDDefaultGenerator(&GD);
+	if (select == 1) {
+		IOLoad(&GD, "SAVE000.SAV");
+	}
 	GameRender(&GD);
+	closegraph();
 	BASS_Free();
 }
 
@@ -45,7 +44,7 @@ void GDDefaultGenerator(GameData* GD) {
 }
 
 LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	// 如果是 WM_CLOSE 消息，则执行特定操作
+	// 如果是 WM_CLOSE 消息，则执行关闭操作
 	if (uMsg == WM_CLOSE) {
 		printf("\r\n游戏窗口被手动关闭，游戏程序即将退出...\r\n");
 		PostQuitMessage(0);

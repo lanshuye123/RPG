@@ -110,6 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +135,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BuildInMap.cpp" />
+    <ClCompile Include="cJSON.c" />
     <ClCompile Include="Event.cpp" />
+    <ClCompile Include="EventPraser.cpp" />
     <ClCompile Include="IO.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RPG.cpp" />
@@ -149,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bass.h" />
+    <ClInclude Include="cJSON.h" />
     <ClInclude Include="easyx.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="graphics.h" />
