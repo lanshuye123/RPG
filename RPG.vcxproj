@@ -72,9 +72,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,37 +144,58 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BuildInMap.cpp" />
-    <ClCompile Include="cJSON.c" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="EventPraser.cpp" />
+    <ClCompile Include="include\cJSON.c" />
     <ClCompile Include="IO.cpp" />
+    <ClCompile Include="NetIO.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RPG.cpp" />
     <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="yzdel.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="bass.h" />
-    <ClInclude Include="cJSON.h" />
-    <ClInclude Include="easyx.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="graphics.h" />
+    <ClInclude Include="library.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="debug.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="bass.dll">
+    <CopyFileToFolders Include="bass.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
-    </None>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bassmidi.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="libcrypto-3.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="libcurl.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="libssl-3.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </CopyFileToFolders>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

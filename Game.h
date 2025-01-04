@@ -1,17 +1,8 @@
 #pragma once
 
+#include "library.h"
+
 #define DEBUG
-
-#include <stdio.h>
-#include "graphics.h"
-#pragma comment(lib,"EasyXw.lib")
-#pragma comment(lib,"EasyXa.lib")
-
-#include "bass.h"
-#pragma comment(lib,"bass.lib")
-
-#include "bassmidi.h"
-#pragma comment(lib,"bassmidi.lib")
 
 #define frameW 768
 #define frameH 640
@@ -33,11 +24,9 @@ typedef struct GameData {
 			int Wear[4];
 		} Item;
 	} Player;
+	byte PublicVar[16];
 } GameData;
 
-//IO ²Ù×÷£¬°üÀ¨¶ÁÐ´
-void IOSave(GameData* GD,const char* SaveName);
-void IOLoad(GameData* GD,const char* SaveName);
 
 void GDDefaultGenerator(GameData *GD);
 
@@ -53,7 +42,7 @@ typedef struct GameEventsChain {
 	int Trigger;
 	int BGELen;
 	BasicGameEvent* pBGE;
-};
+} GameEventsChain;
 
 typedef struct MapGameEvents {
 	int GECLen;
@@ -80,23 +69,31 @@ void MapRender(IMAGE* CanvasHandle, Map* Map);
 void MainRender(Map* MapPtr, GameData* GD);
 void PlayerRender(IMAGE* CanvasHandle, Pos Position);
 
+//IO ²Ù×÷£¬°üÀ¨¶ÁÐ´
+void IOSave(GameData* GD, const char* SaveName);
+void IOLoad(GameData* GD, const char* SaveName);
 void IOMapLoad(Map* Map, int MapId);
 void IOLoadDialog(char* strs[], int dialogid);
+int IOExists(const char*);
+
+bool NetLoad(GameData* GD, const char* userid);
+int NetSave(GameData* GD, const char* userid);
 
 #define BlockSize 64
 
-#ifdef DEBUG
-void DBGIOMapSave(Map* Map, int MapId);
-#endif // DEBUG
-
-
-void ActiveEvent(BasicGameEvent* Ev, GameData* GD);
+void ActiveBasicEvent(BasicGameEvent* Ev, GameData* GD);
 
 int UITitle();
-void UIMenu();
+void UIBag(GameData* GD);
+void UIHelp();
+void UIMenu(GameData* GD, Map* PMap);
+void UILoad(GameData* GD);
+void UISave(GameData* GD);
 void UITalk(const wchar_t* name, const wchar_t* str);
 void UITalkExA(char* str);
 void UIAlert(LPCTSTR notice);
 
 MapGameEvents* EventPraser(int mapid);
 void EventCleaner(MapGameEvents** ppMPE);
+
+void MapGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);

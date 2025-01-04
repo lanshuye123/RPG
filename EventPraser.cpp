@@ -1,30 +1,24 @@
 #include "Game.h"
-#include "cJSON.h"
 
-cJSON* LoadJSON(const char* filename) {
+static cJSON* LoadJSON(const char* filename) {
     FILE* pFile = NULL;
     errno_t err = fopen_s(&pFile, filename, "r");
     if (err != 0 || pFile == NULL) {
         fprintf(stderr, "打开文件%s失败(%d)\n", filename, err);
         return NULL;
     }
-
     //读取长度
     fseek(pFile, 0, SEEK_END);
     size_t fsize = ftell(pFile);
     fseek(pFile, 0, SEEK_SET);
-
     char* buffer =  (char*) malloc((fsize + 1) * sizeof(char));
     if (!buffer) {
         fclose(pFile);
         return NULL;
     }
-
     size_t read_size = fread_s(buffer, fsize + 1, 1, fsize, pFile);
     buffer[read_size] = '\0';
-
     fclose(pFile);
-
     //解析JSON
     cJSON* json = cJSON_Parse(buffer);
     if (json == NULL) {
@@ -35,7 +29,6 @@ cJSON* LoadJSON(const char* filename) {
         free(buffer);
         return NULL;
     }
-
     free(buffer);
     return json;
 }

@@ -36,29 +36,18 @@
     <ClCompile Include="EventPraser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="cJSON.c">
+    <ClCompile Include="NetIO.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="yzdel.png">
-      <Filter>资源文件</Filter>
-    </Image>
+    <ClCompile Include="include\cJSON.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="bass.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="easyx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cJSON.h">
+    <ClInclude Include="library.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,8 +57,20 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="bass.dll">
+    <CopyFileToFolders Include="libssl-3.dll">
       <Filter>资源文件</Filter>
-    </None>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bass.dll">
+      <Filter>资源文件</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bassmidi.dll">
+      <Filter>资源文件</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="libcrypto-3.dll">
+      <Filter>资源文件</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="libcurl.dll">
+      <Filter>资源文件</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

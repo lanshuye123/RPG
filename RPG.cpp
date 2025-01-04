@@ -1,12 +1,13 @@
 ﻿#include "Game.h"
-#include <Windows.h>
 
 #define GameName "RPG：勇者赞歌"
 
-struct GameData GD;
+GameData GD;
 
 LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 WNDPROC DefaultWinProc = nullptr;
+
+jmp_buf jmp_UITitle;
 
 signed main() {
 	//Copyright
@@ -17,12 +18,15 @@ signed main() {
 	DefaultWinProc = (WNDPROC)GetWindowLongPtr(GameUI, GWLP_WNDPROC);
 	SetWindowLongPtr(GameUI, GWLP_WNDPROC, (LONG_PTR)SubclassProc);
 
+	_setjmp(jmp_UITitle);
+
 	setbkmode(TRANSPARENT);
 	settextstyle(32, 0, _T("思源宋体"));
 	int select = UITitle();
 	GDDefaultGenerator(&GD);
 	if (select == 1) {
-		IOLoad(&GD, "SAVE000.SAV");
+		UILoad(&GD);
+		//IOLoad(&GD, "SAVE000.SAV");
 	}
 	GameRender(&GD);
 	closegraph();
@@ -41,6 +45,9 @@ void GDDefaultGenerator(GameData* GD) {
 	GD->Player.Item.Wear[1] = 2;
 	GD->Player.Item.Wear[2] = 3;
 	GD->Player.Item.Wear[3] = 4;
+	for (int i = 0; i < 16; i++) {
+		GD->PublicVar[i] = 0;
+	}
 }
 
 LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

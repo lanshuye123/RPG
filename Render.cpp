@@ -1,10 +1,11 @@
 #include "Game.h"
-#include "math.h"
 
 IMAGE Tile;
 IMAGE PlayerAnimate;
 
 #define GenWalk(U,D,L,R) ((int)(pow(2,0)*(!!!U) + pow(2,1)*(!!!D) + pow(2,2)*(!!!L) + pow(2,3)*(!!!R)))
+
+bool EventActiving = false;
 
 void static MPInit(Map* MapPtr) {
 	MapPtr->Size.width = 30;
@@ -22,13 +23,6 @@ void static MPInit(Map* MapPtr) {
 	}
 }
 
-#ifdef DEBUG
-
-int DebugMode = 0;
-#define DebugFlag(A) (DebugMode & (int)pow(2, A)) >> A
-int DBGSelectBlock = 0;
-#endif // DEBUG
-
 int PlayerLastMapid = -1;
 
 #define QueryWalkZw(A,D) ((A & (int)pow(2, D) >> (D)))
@@ -36,9 +30,9 @@ int PlayerLastMapid = -1;
 #define QueryWalk(Direction) (QueryWalkZw((MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable),Direction))
 int PlayerDirectStatus = 0;
 int PlayerPaceStatus = 0;
+bool EnterPressed = false;
 
 void GameRender(GameData* GD) {
-
 	HSTREAM GameMainBGM = BASS_StreamCreateFile(false, "Assets\\GameBGM.mp3", 0, 0, BASS_SAMPLE_LOOP);
 	BASS_ChannelPlay(GameMainBGM, false);
 
@@ -50,8 +44,12 @@ void GameRender(GameData* GD) {
 	MainRender(MapPtr, GD);
 	flushmessage(EX_KEY);
 	ExMessage EMS;
+
 	while (1){
 		MainRender(MapPtr, GD);
+		MapGameEventTrigger(MapPtr->Events, GD);
+		MainRender(MapPtr, GD);
+		EnterPressed = false;
 		flushmessage(EX_KEY);
 		EMS = getmessage(EX_KEY);
 		if (EMS.message != WM_KEYUP)continue;
@@ -86,34 +84,20 @@ void GameRender(GameData* GD) {
 		}
 
 		if (EMS.vkcode == 13) {
-			void ActiveTalk(int);
-			ActiveTalk(0);
-
-			for (int i = 0; i < MapPtr->Events->GECLen; i++) {
-
-			}
-			//for (int i = 0; i < MapPtr->EventNum; i++) {
-			//	if (MapPtr->Events[i].Pos.X == GD->PlayerPos.X && MapPtr->Events[i].Pos.Y == GD->PlayerPos.Y) {
-			//		ActiveEvent(&(MapPtr->Events[i].Event), GD);
-			//	}
-			//}
+			/*void ActiveTalk(int);
+			ActiveTalk(2);*/
+			EnterPressed = true;
 		}
 
 		if (EMS.vkcode == VK_ESCAPE) {
-			UIMenu();
+			BASS_ChannelPause(GameMainBGM);
+			UIMenu(GD,MapPtr);
+			BASS_ChannelStart(GameMainBGM);
 		}
 	}
 }
 
-
-void ASyncRender() {
-	//MainRender(MapPtr, GD);
-}
-
-
-
 void MainRender(Map* MapPtr , GameData* GD) {
-	
 	if (GD->Mapid != PlayerLastMapid) {
 		MPInit(MapPtr);
 		IOMapLoad(MapPtr, GD->Mapid);
@@ -157,8 +141,8 @@ void MapRender(IMAGE* CanvasHandle, Map* MapPtr) {
 	SetWorkingImage(NULL);
 }
 
-static int PlayerW = 64;
-static int PlayerH = 96;
+const static int PlayerW = 64;
+const static int PlayerH = 96;
 
 #pragma comment( lib, "MSIMG32.LIB")
 

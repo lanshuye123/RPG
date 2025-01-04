@@ -27,6 +27,10 @@ int IOExists(const char* SaveName) {
 	}
 }
 
+void IOMetadataLoad() {
+
+}
+
 void IOLoad(GameData* GD,const char* SaveName) {
 	FILE* Save;
 	fopen_s(&Save, SaveName, "rb");
@@ -45,9 +49,9 @@ void IOMapLoad(Map* PMap, int MapId) {
 	if (PMap->Blocks != NULL)free(PMap->Blocks);
 	if (PMap->Events != NULL)EventCleaner(&(PMap->Events));
 
-	char* mapname = (char*)malloc(sizeof(char) * 36);
+	char* mapname = (char*)malloc(sizeof(char) * 64);
 	if (mapname == NULL)return;
-	sprintf_s(mapname, 36, "maps/%d.map", MapId);
+	sprintf_s(mapname, 64, "Assets/Maps/%d.map", MapId);
 
 	//打开地图并载入
 	FILE* PtrMap;
