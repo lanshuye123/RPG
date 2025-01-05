@@ -55,7 +55,7 @@ typedef struct Block {
 } Block;
 
 struct Map {
-	struct {
+	struct Size{
 		int width;
 		int height;
 	} Size;
@@ -87,7 +87,7 @@ int UITitle();
 void UIBag(GameData* GD);
 void UIHelp();
 void UIMenu(GameData* GD, Map* PMap);
-void UILoad(GameData* GD);
+void UILoad(GameData* GD, bool* success);
 void UISave(GameData* GD);
 void UITalk(const wchar_t* name, const wchar_t* str);
 void UITalkExA(char* str);
@@ -96,4 +96,6 @@ void UIAlert(LPCTSTR notice);
 MapGameEvents* EventPraser(int mapid);
 void EventCleaner(MapGameEvents** ppMPE);
 
-void MapGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
+void MapCloseGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
+void MapEnterGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
+void MapAutoGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);

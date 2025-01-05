@@ -1,8 +1,8 @@
 #include "Game.h"
 
-#include <map>
 namespace UIRegion {
 	COLORREF UIBLUE = RGB(0x08, 0x57, 0x91);
+	COLORREF UIGRAY = RGB(0x89, 0x8d, 0x83);
 }
 
 void UIAlert(LPCTSTR notice) {
@@ -32,8 +32,20 @@ int UITitle() {
 	//setbkmode(OPAQUE);
 	settextcolor(BLACK);
 	RECT r = { 0, frameH * 1 / 2, frameW, frameH };
-	drawtext(_T("> 新的旅途\r\n\r\no 加载存档\r\n\r\no 退出游戏"), &r, DT_CENTER | DT_VCENTER);
+	char str[256];
 	while (1) {
+		#define MACRO_AO(i) ((select==i)?'>':'o')
+		sprintf_s(str, "%c 新的旅途\r\n\r\n%c 加载存档\r\n\r\n%c 退出游戏", MACRO_AO(0), MACRO_AO(1), MACRO_AO(2));
+		#undef MACRO_AO
+
+		int len = MultiByteToWideChar(CP_THREAD_ACP, 0, str, -1, NULL, 0);
+		wchar_t* w_value = (wchar_t*)malloc(len * sizeof(wchar_t));
+		MultiByteToWideChar(CP_THREAD_ACP, 0, str, -1, w_value, len);
+
+		drawtext(w_value, &r, DT_CENTER | DT_VCENTER);
+
+		free(w_value);
+
 		getmessage(&EMS, EX_KEY);
 		if (EMS.message != WM_KEYUP)continue;
 		if (EMS.vkcode == 0x53 || EMS.vkcode == 40) {
@@ -64,9 +76,6 @@ int UITitle() {
 			}
 		}
 		putimage(0, 0, &TitleIMG);
-		if (select == 0)drawtext(_T("> 新的旅途\r\n\r\no 加载存档\r\n\r\no 退出游戏"), &r, DT_CENTER | DT_VCENTER);
-		if (select == 1)drawtext(_T("o 新的旅途\r\n\r\n> 加载存档\r\n\r\no 退出游戏"), &r, DT_CENTER | DT_VCENTER);
-		if (select == 2)drawtext(_T("o 新的旅途\r\n\r\no 加载存档\r\n\r\n> 退出游戏"), &r, DT_CENTER | DT_VCENTER);
 	}
 	return 0;
 }
@@ -79,7 +88,9 @@ void UITalk(const wchar_t* name, const wchar_t* str) {
 	fillrectangle(5 , frameH * 3 / 4 + 5, frameW - 5, frameH - 5);
 	drawtext(name, &Discuss, DT_LEFT);
 
-	Discuss = { 20 + -(frameH * 3 / 4 + 10 - frameH + 10) , frameH * 3 / 4 + 10 + 48 , frameW - 10 , frameH - 10 };
+	const int square = -(frameH * 3 / 4 + 10 - frameH + 10);
+
+	Discuss = { 20 + square , frameH * 3 / 4 + 10 + 48 , frameW - 10 , frameH - 10 };
 	settextstyle(36, 0, _T("思源宋体"));
 	drawtext(str, &Discuss, DT_LEFT| DT_WORDBREAK);
 
@@ -87,9 +98,10 @@ void UITalk(const wchar_t* name, const wchar_t* str) {
 	wchar_t* imagename = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	if (imagename == NULL)return;
 	swprintf_s(imagename, 256, L"Assets\\actors\\%ls.png", name);
-	loadimage(&CharacterIMG, imagename, -(frameH * 3 / 4 + 10 - frameH + 10), -(frameH * 3 / 4 + 10 - frameH + 10));
+	
+	loadimage(&CharacterIMG, imagename, square, square);		
 	free(imagename);
-	putimage(10, frameH * 3 / 4 + 10, &CharacterIMG);
+	TransparentBlt(GetImageHDC(NULL), 10, frameH * 3 / 4 + 10, square, square, GetImageHDC(&CharacterIMG), 0,0, square, square ,NULL);
 
 	flushmessage(EX_KEY);
 	ExMessage EMS;
@@ -106,7 +118,7 @@ void UITalkExA(char* str) {
 		int len = MultiByteToWideChar(CP_THREAD_ACP, 0, str, -1, NULL, 0);
 		wchar_t* w_value = (wchar_t*)malloc(len * sizeof(wchar_t));
 		MultiByteToWideChar(CP_THREAD_ACP, 0, str, -1, w_value, len);
-		UITalk(L"无名氏", w_value);
+		UITalk(L"旁白", w_value);
 		free(w_value);
 		return;
 	}
@@ -135,7 +147,8 @@ void UIMenu(GameData* GD, Map* PMap) {
 	//527aff
 	//drawtext(notice, &alert, DT_CENTER | DT_VCENTER);
 
-	setfillcolor(UIRegion::UIBLUE);
+	//setfillcolor(UIRegion::UIBLUE);
+	setfillcolor(UIRegion::UIGRAY);
 	fillrectangle(0, 0, frameW, frameH);
 
 	LOGFONT Font;
@@ -200,7 +213,7 @@ void UIMenu(GameData* GD, Map* PMap) {
 				extern jmp_buf jmp_UITitle;
 				longjmp(jmp_UITitle, 1);
 			};
-			setfillcolor(UIRegion::UIBLUE);
+			setfillcolor(UIRegion::UIGRAY);
 			fillrectangle(0, 0, frameW, frameH);
 		}
 	}
@@ -247,14 +260,21 @@ int static UIBasicLoadSave(int select) {
 		if (EMS.vkcode == 13) {
 			return select;
 		}
+		if (EMS.vkcode == VK_ESCAPE) {
+			return -1;
+		}
 	}
 }
 
-void UILoad(GameData* GD) {
+void UILoad(GameData* GD, bool *success) {
 	char str[256];
 	int select = 0;
 	while (1) {
 		select = UIBasicLoadSave(select);
+		if (select == -1) {
+			*success = false;
+			return;
+		}
 		if (select == SlotMax) {
 			NetLoad(GD, "testuser");
 			break;
@@ -267,9 +287,13 @@ void UILoad(GameData* GD) {
 			}
 			else {
 				UIAlert(L"[警告]\r\n存档不存在");
+				*success = false;
+				return;
 			}
 		}
 	}
+	*success = true;
+	return;
 }
 
 void UISave(GameData* GD) {
@@ -277,6 +301,9 @@ void UISave(GameData* GD) {
 	int select = 0;
 	while (1) {
 		select = UIBasicLoadSave(select);
+		if (select == -1) {
+			return;
+		}
 		if (select == SlotMax) {
 			NetSave(GD, "testuser");
 			break;
@@ -291,9 +318,15 @@ void UISave(GameData* GD) {
 }
 
 void UIHelp() {
+
+
 	return;
 }
 
 void UIBag(GameData* GD) {
+	return;
+}
 
+void UIUsernameRequire(char* pusername) {
+	
 }

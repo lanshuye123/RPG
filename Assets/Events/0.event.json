@@ -5,7 +5,7 @@
       "PosY": 1,
       "Image": 0,
       "Walkable": false,
-      "Trigger": 2,
+      "Trigger": 1,
       "EventNodes": [
         {
           "EventCode": 1,
@@ -14,8 +14,38 @@
       ]
     },
     {
-      "PosX": 10,
-      "PosY": 20,
+      "PosX": 5,
+      "PosY": 5,
+      "Image": 0,
+      "Walkable": false,
+      "Trigger": 1,
+      "EventNodes": [
+        {
+          "EventCode": 1,
+          "Flags": 4
+        },
+        {
+          "EventCode": 3,
+          "Flags": 2
+        }
+      ]
+    },
+    {
+      "PosX": 5,
+      "PosY": 5,
+      "Image": 0,
+      "Walkable": false,
+      "Trigger": 4,
+      "EventNodes": [
+        {
+          "EventCode": 1,
+          "Flags": 5
+        }
+      ]
+    },
+    {
+      "PosX": -1,
+      "PosY": -1,
       "Image": 0,
       "Walkable": false,
       "Trigger": 0,

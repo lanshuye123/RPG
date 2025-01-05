@@ -25,7 +25,11 @@ signed main() {
 	int select = UITitle();
 	GDDefaultGenerator(&GD);
 	if (select == 1) {
-		UILoad(&GD);
+		bool success = false;
+		UILoad(&GD, &success);
+		if (!success) {
+			longjmp(jmp_UITitle,0);
+		}
 		//IOLoad(&GD, "SAVE000.SAV");
 	}
 	GameRender(&GD);

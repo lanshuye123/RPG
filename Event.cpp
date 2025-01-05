@@ -2,12 +2,13 @@
 // 0: 切换地图
 // 1: 触发对话
 // 2: 触发战斗
+// 3: 修改某公共变量PublicVar
 
 //激活对话
 
 const int TalkMaxLen = 32;
 
-void ActiveTalk(int TalkID) {
+static void ActiveTalk(int TalkID) {
 	char* TalkStr[TalkMaxLen];
 	if (TalkStr == NULL)return;
 	for (int i = 0; i < TalkMaxLen; i++) {
@@ -23,6 +24,9 @@ void ActiveTalk(int TalkID) {
 		free(TalkStr[i]);
 	}
 }
+
+#define ByteQuery(MacroByte, bit) ((MacroByte) & (1U << (bit)) ? true : false)
+#define ByteSet(MacroByte, bit) ((MacroByte) | (1U << (bit)))
 
 void ActiveBasicEvent(BasicGameEvent* Ev, GameData* GD) {
 	switch (Ev->EventCode) {
@@ -41,11 +45,11 @@ void ActiveBasicEvent(BasicGameEvent* Ev, GameData* GD) {
 		case 2:
 
 			break;
+		case 3:
+			GD->PublicVar[GD->Mapid] = ByteSet(GD->PublicVar[GD->Mapid], Ev->Flags);
+			break;
 	}
 }
-
-#define ByteQuery(MacroByte, bit) ((MacroByte) & (1U << (bit)) ? true : false)
-#define ByteSet(MacroByte, bit) ((MacroByte) | (1U << (bit)))
 
 extern int PlayerDirectStatus;
 extern bool EnterPressed;
@@ -60,20 +64,11 @@ extern bool EventActiving;
 * 5：靠近触发，不限次数
 * 6：靠近触发，在2以后
 */
-void MapGameEventTrigger(MapGameEvents* pMGE, GameData* pGD) {
+void MapCloseGameEventTrigger(MapGameEvents* pMGE, GameData* pGD) {
 	if (pMGE == nullptr) return;
 	for (int i = 0; i < pMGE->GECLen; i++) {
 		bool active = false;
 		switch (pMGE->pGEC[i].Trigger) {
-		case 0:
-			if (!ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
-				pGD->PublicVar[pGD->Mapid] = ByteSet(pGD->PublicVar[pGD->Mapid], i);
-				active = true;
-			}
-			break;
-		case 1:
-
-			break;
 		case 2:
 			if (!ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
 				if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
@@ -82,7 +77,66 @@ void MapGameEventTrigger(MapGameEvents* pMGE, GameData* pGD) {
 				}
 			}
 			break;
+		case 5:
+			if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
+				active = true;
+			}
+			break;
+		case 6:
+			if (ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
+				if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
+					active = true;
+				}
+			}
+			break;
 		}
+
+		if (active) for (int j = 0; j < pMGE->pGEC[i].BGELen; j++) {
+			ActiveBasicEvent(&(pMGE->pGEC[i].pBGE[j]), pGD);
+		}
+	}
+}
+
+void MapAutoGameEventTrigger(MapGameEvents* pMGE, GameData* pGD) {
+	if (pMGE == nullptr) return;
+	for (int i = 0; i < pMGE->GECLen; i++) {
+		if (pMGE->pGEC[i].Trigger == 0 && !ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
+			pGD->PublicVar[pGD->Mapid] = ByteSet(pGD->PublicVar[pGD->Mapid], i);
+			for (int j = 0; j < pMGE->pGEC[i].BGELen; j++) {
+				ActiveBasicEvent(&(pMGE->pGEC[i].pBGE[j]), pGD);
+			}
+		}
+	}
+
+}
+
+void MapEnterGameEventTrigger(MapGameEvents* pMGE, GameData* pGD) {
+	if (pMGE == nullptr) return;
+	for (int i = 0; i < pMGE->GECLen; i++) {
+		bool active = false;
+		switch (pMGE->pGEC[i].Trigger) {
+		case 1:
+			if (!ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
+				if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
+					pGD->PublicVar[pGD->Mapid] = ByteSet(pGD->PublicVar[pGD->Mapid], i);
+					active = true;
+				}
+			}
+			break;
+		case 3:
+			if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
+				active = true;
+			}
+			break;
+		case 4:
+			if (ByteQuery(pGD->PublicVar[pGD->Mapid], i)) {
+				if (pGD->PlayerPos.X == pMGE->pGEC[i].Pos.X && pGD->PlayerPos.Y == pMGE->pGEC[i].Pos.Y) {
+					active = true;
+				}
+			}
+			break;
+		}
+
 		if (active) for (int j = 0; j < pMGE->pGEC[i].BGELen; j++) {
 			EventActiving = true;
 			ActiveBasicEvent(&(pMGE->pGEC[i].pBGE[j]), pGD);

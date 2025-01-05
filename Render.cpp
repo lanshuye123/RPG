@@ -30,7 +30,6 @@ int PlayerLastMapid = -1;
 #define QueryWalk(Direction) (QueryWalkZw((MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable),Direction))
 int PlayerDirectStatus = 0;
 int PlayerPaceStatus = 0;
-bool EnterPressed = false;
 
 void GameRender(GameData* GD) {
 	HSTREAM GameMainBGM = BASS_StreamCreateFile(false, "Assets\\GameBGM.mp3", 0, 0, BASS_SAMPLE_LOOP);
@@ -47,53 +46,62 @@ void GameRender(GameData* GD) {
 
 	while (1){
 		MainRender(MapPtr, GD);
-		MapGameEventTrigger(MapPtr->Events, GD);
-		MainRender(MapPtr, GD);
-		EnterPressed = false;
+		
 		flushmessage(EX_KEY);
 		EMS = getmessage(EX_KEY);
 		if (EMS.message != WM_KEYUP)continue;
 		
+		bool active = false;
+
 		if ((EMS.vkcode == 0x57 || EMS.vkcode == 0x26) && GD->PlayerPos.Y > 0) {
 			GD->PlayerPos.Y--;
-
-			printf("%d", (MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable));
-
-			if (QueryWalk(0)) GD->PlayerPos.Y++;
-			
-			if (PlayerDirectStatus == 3) PlayerPaceStatus += 1;
+			if (!QueryWalk(0)) {
+				if (PlayerDirectStatus == 3) PlayerPaceStatus += 1;
+				active = true;
+			}else GD->PlayerPos.Y++;
 			PlayerDirectStatus = 3;
 		}
 		if ((EMS.vkcode == 0x53 || EMS.vkcode == 0x28) && GD->PlayerPos.Y < MapPtr->Size.height - 1) {
 			GD->PlayerPos.Y++;
-			if (QueryWalk(1)) GD->PlayerPos.Y--;
-			if (PlayerDirectStatus == 0) PlayerPaceStatus += 1;
+			if (!QueryWalk(1)) {
+				if (PlayerDirectStatus == 0) PlayerPaceStatus += 1;
+				active = true;
+			}else GD->PlayerPos.Y--;
 			PlayerDirectStatus = 0;
 		}
 		if ((EMS.vkcode == 0x41 || EMS.vkcode == 0x25) && GD->PlayerPos.X > 0) {
 			GD->PlayerPos.X--;
-			if (QueryWalk(2)) GD->PlayerPos.X++;
-			if (PlayerDirectStatus == 1) PlayerPaceStatus += 1;
+			if (!QueryWalk(2)) {
+				if (PlayerDirectStatus == 1) PlayerPaceStatus += 1;
+				active = true;
+			}else GD->PlayerPos.X++;
 			PlayerDirectStatus = 1;
 		}
 		if ((EMS.vkcode == 0x44 || EMS.vkcode == 0x27) && GD->PlayerPos.X < MapPtr->Size.width - 1) {
 			GD->PlayerPos.X++;
-			if (QueryWalk(3)) GD->PlayerPos.X--;
-			if (PlayerDirectStatus == 2) PlayerPaceStatus += 1;
+			if (!QueryWalk(3)) {
+				if (PlayerDirectStatus == 2) PlayerPaceStatus += 1;
+				active = true;
+			}else GD->PlayerPos.X--;
 			PlayerDirectStatus = 2;
 		}
 
 		if (EMS.vkcode == 13) {
-			/*void ActiveTalk(int);
-			ActiveTalk(2);*/
-			EnterPressed = true;
+			MapEnterGameEventTrigger(MapPtr->Events, GD);
+			active = false;
 		}
 
 		if (EMS.vkcode == VK_ESCAPE) {
 			BASS_ChannelPause(GameMainBGM);
 			UIMenu(GD,MapPtr);
 			BASS_ChannelStart(GameMainBGM);
+			active = false;
 		}
+
+		if (active) {
+			MainRender(MapPtr, GD);
+			MapCloseGameEventTrigger(MapPtr->Events, GD);
+		}		
 	}
 }
 
@@ -102,6 +110,7 @@ void MainRender(Map* MapPtr , GameData* GD) {
 		MPInit(MapPtr);
 		IOMapLoad(MapPtr, GD->Mapid);
 		PlayerLastMapid = GD->Mapid;
+		MapAutoGameEventTrigger(MapPtr->Events, GD);
 	}
 
 	IMAGE MapRenderHandle;
@@ -143,8 +152,6 @@ void MapRender(IMAGE* CanvasHandle, Map* MapPtr) {
 
 const static int PlayerW = 64;
 const static int PlayerH = 96;
-
-#pragma comment( lib, "MSIMG32.LIB")
 
 void PlayerRender(IMAGE* CanvasHandle, Pos Position) {
 	//Status:0->обё╛1->вС,2->ср,3->ио

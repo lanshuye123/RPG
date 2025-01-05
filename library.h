@@ -13,6 +13,8 @@
 #include <Windows.h>
 //Win32 APIs
 
+#pragma comment( lib, "MSIMG32.LIB")
+
 /*只需要在 项目->属性->包含内容 中添加$(ProjectDir)include，
 * 就可以自动添加include目录下各个文件为尖括号引用项目
 * 同理，只需要设置 项目->属性->库目录 添加 $(ProjectDir)include，
