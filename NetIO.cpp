@@ -4,6 +4,7 @@
 
 
 #include <curl/curl.h>
+#pragma comment(lib,"libcurl.lib")
 //使用libcurl实现网络存档、读档
 
 #include <openssl/core.h>

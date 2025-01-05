@@ -318,8 +318,7 @@ void UISave(GameData* GD) {
 }
 
 void UIHelp() {
-
-
+	
 	return;
 }
 
