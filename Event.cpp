@@ -3,13 +3,14 @@
 // 1: 触发对话
 // 2: 触发战斗
 // 3: 修改某公共变量PublicVar
+// 4: 剧终函数
 
 //激活对话
 
 const int TalkMaxLen = 32;
 
 static void ActiveTalk(int TalkID) {
-	char* TalkStr[TalkMaxLen];
+	char* TalkStr[TalkMaxLen] = {0};
 	if (TalkStr == NULL)return;
 	for (int i = 0; i < TalkMaxLen; i++) {
 		TalkStr[i] = (char*)malloc(sizeof(char) * 256);
@@ -47,6 +48,9 @@ void ActiveBasicEvent(BasicGameEvent* Ev, GameData* GD) {
 			break;
 		case 3:
 			GD->PublicVar[GD->Mapid] = ByteSet(GD->PublicVar[GD->Mapid], Ev->Flags);
+			break;
+		case 4:
+			UIEnd(0);
 			break;
 	}
 }

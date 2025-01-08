@@ -1,38 +1,5 @@
 #include "Game.h"
 
-static cJSON* LoadJSON(const char* filename) {
-    FILE* pFile = NULL;
-    errno_t err = fopen_s(&pFile, filename, "r");
-    if (err != 0 || pFile == NULL) {
-        fprintf(stderr, "打开文件%s失败(%d)\n", filename, err);
-        return NULL;
-    }
-    //读取长度
-    fseek(pFile, 0, SEEK_END);
-    size_t fsize = ftell(pFile);
-    fseek(pFile, 0, SEEK_SET);
-    char* buffer =  (char*) malloc((fsize + 1) * sizeof(char));
-    if (!buffer) {
-        fclose(pFile);
-        return NULL;
-    }
-    size_t read_size = fread_s(buffer, fsize + 1, 1, fsize, pFile);
-    buffer[read_size] = '\0';
-    fclose(pFile);
-    //解析JSON
-    cJSON* json = cJSON_Parse(buffer);
-    if (json == NULL) {
-        const char* error_ptr = cJSON_GetErrorPtr();
-        if (error_ptr != NULL) {
-            fprintf(stderr, "JSON解析错误(%s)\n", error_ptr);
-        }
-        free(buffer);
-        return NULL;
-    }
-    free(buffer);
-    return json;
-}
-
 MapGameEvents* EventPraser(int mapid) {
     int FileNameLength = snprintf(NULL, 0, "Assets\\Events\\%d.event.json", mapid) + 1;
     char* FileNameStr = (char*)malloc(sizeof(char) * FileNameLength);

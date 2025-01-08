@@ -30,9 +30,6 @@
     <ClCompile Include="Render.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BuildInMap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="EventPraser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -42,12 +39,18 @@
     <ClCompile Include="include\cJSON.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="library.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,5 +75,10 @@
     <CopyFileToFolders Include="libcurl.dll">
       <Filter>资源文件</Filter>
     </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RPG.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

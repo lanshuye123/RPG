@@ -1,6 +1,6 @@
 ﻿#include "Game.h"
 
-#define GameName "RPG：勇者赞歌"
+#define GameName "RPG游戏"
 
 GameData GD;
 
@@ -11,9 +11,19 @@ jmp_buf jmp_UITitle;
 
 signed main() {
 	//Copyright
-	printf("程序作者:纳米2班 姜春旺\r\n");
+	//printf("程序作者:纳米2班 姜春旺\r\n\r\n");
+
+	// BASIC Help
+	printf("游戏基本介绍:\r\n");
+	printf("游戏内通过WSAD或上下左右箭头进行移动，\r\n");
+	printf("游戏内通过回车键(Enter)与人物、事件进行互动，\r\n");
+	printf("游戏内按ESC键打开游戏内菜单\r\n");
+	printf("按回车键开始游戏\r\n");
+
+	(void)getchar();
+
 	HWND GameUI = initgraph(frameW, frameH);
-	SetWindowText(GameUI, TEXT("R.P.G 勇者赞歌 作者:纳米2班姜春旺"));
+	SetWindowText(GameUI, TEXT("RPG游戏"));
 	BASS_Init(-1, 44100, 0, GameUI, 0);
 	DefaultWinProc = (WNDPROC)GetWindowLongPtr(GameUI, GWLP_WNDPROC);
 	SetWindowLongPtr(GameUI, GWLP_WNDPROC, (LONG_PTR)SubclassProc);
@@ -37,24 +47,7 @@ signed main() {
 	BASS_Free();
 }
 
-//生成默认游戏数据
-void GDDefaultGenerator(GameData* GD) {
-	GD->Mapid = 0;
-	GD->Player.Level = 1;
-	GD->PlayerPos = { 0,0 };
-	GD->Player.HP = 100;
-	GD->Player.MP = 100;
-	GD->Player.Item.Weapon = 0;
-	GD->Player.Item.Wear[0] = 1;
-	GD->Player.Item.Wear[1] = 2;
-	GD->Player.Item.Wear[2] = 3;
-	GD->Player.Item.Wear[3] = 4;
-	for (int i = 0; i < 16; i++) {
-		GD->PublicVar[i] = 0;
-	}
-}
-
-LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	// 如果是 WM_CLOSE 消息，则执行关闭操作
 	if (uMsg == WM_CLOSE) {
 		printf("\r\n游戏窗口被手动关闭，游戏程序即将退出...\r\n");

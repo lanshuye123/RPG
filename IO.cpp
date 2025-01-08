@@ -27,10 +27,6 @@ int IOExists(const char* SaveName) {
 	}
 }
 
-void IOMetadataLoad() {
-
-}
-
 void IOLoad(GameData* GD,const char* SaveName) {
 	FILE* Save;
 	fopen_s(&Save, SaveName, "rb");
@@ -44,7 +40,6 @@ void IOLoad(GameData* GD,const char* SaveName) {
 }
 
 void IOMapLoad(Map* PMap, int MapId) {
-
 	//先释放可能存在的上次的地图中的Map信息，防止内存占用过大
 	if (PMap->Blocks != NULL)free(PMap->Blocks);
 	if (PMap->Events != NULL)EventCleaner(&(PMap->Events));

@@ -80,7 +80,7 @@ int UITitle() {
 	return 0;
 }
 
-void UITalk(const wchar_t* name, const wchar_t* str) {
+void UITalk(const wchar_t* name, const wchar_t* str, int speed) {
 	RECT Discuss = { 20 + -(frameH * 3 / 4 + 10 - frameH + 10) , frameH * 3 / 4 + 10 , frameW - 10 , frameH - 10};
 	settextstyle(48, 0, _T("思源宋体"));
 	setfillcolor(UIRegion::UIBLUE);
@@ -92,7 +92,9 @@ void UITalk(const wchar_t* name, const wchar_t* str) {
 
 	Discuss = { 20 + square , frameH * 3 / 4 + 10 + 48 , frameW - 10 , frameH - 10 };
 	settextstyle(36, 0, _T("思源宋体"));
-	drawtext(str, &Discuss, DT_LEFT| DT_WORDBREAK);
+
+	LOGFONT lFont;
+	gettextstyle(&lFont);
 
 	IMAGE CharacterIMG;
 	wchar_t* imagename = (wchar_t*)malloc(sizeof(wchar_t) * 256);
@@ -103,8 +105,33 @@ void UITalk(const wchar_t* name, const wchar_t* str) {
 	free(imagename);
 	TransparentBlt(GetImageHDC(NULL), 10, frameH * 3 / 4 + 10, square, square, GetImageHDC(&CharacterIMG), 0,0, square, square ,NULL);
 
-	flushmessage(EX_KEY);
+	const int FontH = lFont.lfHeight;
+	const int FontW = (lFont.lfWeight) ? (lFont.lfWeight) : int(lFont.lfHeight / 1.4);
+	const int LineW = (frameW - 10) - (20 + -(frameH * 3 / 4 + 10 - frameH + 10));
+	const int LineH = (frameH - 10) - (frameH * 3 / 4 + 10);
+
+	struct timespec ts = {};
+	ts.tv_sec = 0;
+	ts.tv_nsec = (int)pow(10,9) / speed;
+
 	ExMessage EMS;
+	for (int i = 0; i < wcslen(str); i++) {
+		int y = i / (LineW / FontW);
+		int x = i % (LineW / FontW);
+		Discuss = { 20 + square + x * FontW , frameH * 3 / 4 + 10 + 48 + y * FontH , frameW - 10 , frameH - 10 };
+		drawtext(str[i], &Discuss, DT_LEFT | DT_WORDBREAK);
+
+		if (peekmessage(&EMS, EX_KEY)) {
+			if (EMS.message == WM_KEYUP && (EMS.vkcode == 0x5A || EMS.vkcode == VK_RETURN)) {
+				ts.tv_nsec = 0;
+			}
+		}
+
+		thrd_sleep(&ts, NULL);
+	}
+
+	flushmessage(EX_KEY);
+
 	while (1) {
 		EMS = getmessage(EX_KEY);
 		if (EMS.message != WM_KEYUP)continue;
@@ -188,20 +215,13 @@ void UIMenu(GameData* GD, Map* PMap) {
 		if (EMS.vkcode == 13) {
 			//0:继续,1:背包,2:保存,3:帮助,4:退出
 			if (select == 0)break;
-			if (select == 1)UIBag(GD);
+			if (select == 1) UIBag(GD);
 			if (select == 2) UISave(GD);
-			//if (select == 3) UIHelp();
-			if (select == 3) {
-				NetSave(GD, "testuser");
-			}
+			if (select == 3) UIHelp();
 
 			if (select == 4) {
 				extern int PlayerLastMapid;
 				PlayerLastMapid = -1;
-
-				//BASS_Free();
-				//BASS_Init(-1, 44100, 0, NULL, NULL);
-
 
 				//手动释放PMap
 				if (PMap->Blocks != NULL)free(PMap->Blocks);
@@ -276,8 +296,15 @@ void UILoad(GameData* GD, bool *success) {
 			return;
 		}
 		if (select == SlotMax) {
-			NetLoad(GD, "testuser");
-			break;
+			bool result = NetLoad(GD, "testuser");
+			if (result) {
+				break;
+			}
+			else {
+				UIAlert(L"[警告]\r\n联网读档失败");
+				*success = false;
+				return;
+			}
 		}
 		else {
 			sprintf_s(str, "SAVE%d.SAVE", select);
@@ -305,7 +332,11 @@ void UISave(GameData* GD) {
 			return;
 		}
 		if (select == SlotMax) {
-			NetSave(GD, "testuser");
+			bool result = NetSave(GD, "testuser");
+			if (result) {
+				UIAlert(L"[警告]\r\n存档失败");
+				return;
+			}
 			break;
 		}
 		else {
@@ -318,14 +349,27 @@ void UISave(GameData* GD) {
 }
 
 void UIHelp() {
-	
+	UIAlert(L"[提示]\r\n因技术限制，帮助系统暂缓开通。");
 	return;
 }
 
 void UIBag(GameData* GD) {
+	UIAlert(L"[提示]\r\n因技术限制，背包系统暂缓开通。");
 	return;
 }
 
-void UIUsernameRequire(char* pusername) {
-	
+void UIEnd(int flag) {
+	RECT Offset = { 0,0,frameW,frameH };
+	const wchar_t* EndMsg = L"全剧终\nTHE END.\n\n作者:24级纳米2班姜春旺\n\n致谢\nlibcurl\nopenssl\nEasyX\nBASS\n\n素材来源\nRPG Maker XP RTP";
+	const timespec ts = { 0,(int)pow(10,9) / 24 };
+	for (int i = 0; i < frameH; i++) {
+		setfillcolor(BLACK);
+		fillrectangle(0, 0, frameW, frameH);
+		Offset.top = frameH - 2*i;
+		setfillcolor(WHITE);
+		drawtext(EndMsg, &Offset, DT_CENTER | DT_VCENTER);
+		thrd_sleep(&ts, NULL);
+		//longjmp可能会有缺陷，但问题不大，在接受范围内
+		//跳转到RPG.cpp->UITitle
+	}
 }

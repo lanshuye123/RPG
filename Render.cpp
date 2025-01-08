@@ -3,31 +3,13 @@
 IMAGE Tile;
 IMAGE PlayerAnimate;
 
-#define GenWalk(U,D,L,R) ((int)(pow(2,0)*(!!!U) + pow(2,1)*(!!!D) + pow(2,2)*(!!!L) + pow(2,3)*(!!!R)))
-
 bool EventActiving = false;
-
-void static MPInit(Map* MapPtr) {
-	MapPtr->Size.width = 30;
-	MapPtr->Size.height = 30;
-	MapPtr->Events = NULL;
-
-	MapPtr->Blocks = (Block*)malloc(sizeof(Block) * 900);
-	if (MapPtr->Blocks == NULL) {
-		printf("MapERROR\r\n");
-		exit(-1);
-	};
-	for (int i = 0; i < 900; i++) {
-		MapPtr->Blocks[i].id = 0;
-		MapPtr->Blocks[i].walkable = GenWalk(1,1,1,1);
-	}
-}
 
 int PlayerLastMapid = -1;
 
-#define QueryWalkZw(A,D) ((A & (int)pow(2, D) >> (D)))
+#define QueryWalkZw(A,D) ((!(A & (int)pow(2, D) >> (D))))
 
-#define QueryWalk(Direction) (QueryWalkZw((MapPtr->Blocks[GD->PlayerPos.X * MapPtr->Size.width + GD->PlayerPos.Y].walkable),Direction))
+#define QueryWalk(Direction) (QueryWalkZw((MapPtr->Blocks[GD->PlayerPos.X + GD->PlayerPos.Y * MapPtr->Size.width].walkable),Direction))
 int PlayerDirectStatus = 0;
 int PlayerPaceStatus = 0;
 
@@ -88,6 +70,7 @@ void GameRender(GameData* GD) {
 
 		if (EMS.vkcode == 13) {
 			MapEnterGameEventTrigger(MapPtr->Events, GD);
+			MainRender(MapPtr, GD);
 			active = false;
 		}
 
@@ -101,6 +84,7 @@ void GameRender(GameData* GD) {
 		if (active) {
 			MainRender(MapPtr, GD);
 			MapCloseGameEventTrigger(MapPtr->Events, GD);
+			MainRender(MapPtr, GD);
 		}		
 	}
 }
@@ -109,12 +93,11 @@ void MainRender(Map* MapPtr , GameData* GD) {
 	if (GD->Mapid != PlayerLastMapid) {
 		MPInit(MapPtr);
 		IOMapLoad(MapPtr, GD->Mapid);
-		PlayerLastMapid = GD->Mapid;
-		MapAutoGameEventTrigger(MapPtr->Events, GD);
 	}
 
 	IMAGE MapRenderHandle;
 	MapRender(&MapRenderHandle, MapPtr);
+	MapEventRender(&MapRenderHandle, MapPtr);
 	PlayerRender(&MapRenderHandle, GD->PlayerPos);
 	SetWorkingImage(NULL);
 
@@ -136,6 +119,28 @@ void MainRender(Map* MapPtr , GameData* GD) {
 		offsety = MapPtr->Size.height - frameH / BlockSize;
 	}
 	putimage(0, 0, frameW, frameH, &MapRenderHandle, offsetx * BlockSize, offsety * BlockSize);
+
+	if (PlayerLastMapid != GD->Mapid) {
+		MapAutoGameEventTrigger(MapPtr->Events, GD);
+		PlayerLastMapid = GD->Mapid;
+	}
+}
+
+void MapEventRender(IMAGE* CanvasHandle, Map* MapPtr) {
+	SetWorkingImage(CanvasHandle);
+	int MPw = MapPtr->Size.width;
+	int MPh = MapPtr->Size.height;
+	for (int i = 0; i < MapPtr->Events->GECLen; i++) {
+		GameEventsChain GEC = MapPtr->Events->pGEC[i];
+		TransparentBlt(
+			GetImageHDC(CanvasHandle),
+			GEC.Pos.X * BlockSize, GEC.Pos.Y * BlockSize,
+			BlockSize , BlockSize ,
+			GetImageHDC(&Tile),
+			GEC.Image % 8 * BlockSize, GEC.Image / 8 * BlockSize,
+			BlockSize, BlockSize,
+			BLACK);
+	}
 }
 
 void MapRender(IMAGE* CanvasHandle, Map* MapPtr) {

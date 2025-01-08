@@ -27,9 +27,6 @@ typedef struct GameData {
 	byte PublicVar[16];
 } GameData;
 
-
-void GDDefaultGenerator(GameData *GD);
-
 typedef struct BasicGameEvent {
 	int EventCode;
 	int Flags;
@@ -68,6 +65,7 @@ void GameRender(GameData* GD);
 void MapRender(IMAGE* CanvasHandle, Map* Map);
 void MainRender(Map* MapPtr, GameData* GD);
 void PlayerRender(IMAGE* CanvasHandle, Pos Position);
+void MapEventRender(IMAGE* CanvasHandle, Map* Map);
 
 //IO ²Ù×÷£¬°üÀ¨¶ÁÐ´
 void IOSave(GameData* GD, const char* SaveName);
@@ -89,9 +87,10 @@ void UIHelp();
 void UIMenu(GameData* GD, Map* PMap);
 void UILoad(GameData* GD, bool* success);
 void UISave(GameData* GD);
-void UITalk(const wchar_t* name, const wchar_t* str);
+void UITalk(const wchar_t* name, const wchar_t* str, int speed = 8);
 void UITalkExA(char* str);
 void UIAlert(LPCTSTR notice);
+void UIEnd(int flag);
 
 MapGameEvents* EventPraser(int mapid);
 void EventCleaner(MapGameEvents** ppMPE);
@@ -99,3 +98,10 @@ void EventCleaner(MapGameEvents** ppMPE);
 void MapCloseGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
 void MapEnterGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
 void MapAutoGameEventTrigger(MapGameEvents* pMGE, GameData* pGD);
+
+
+
+cJSON* LoadJSON(const char* filename);
+void Base64Encoder(const unsigned char* input, size_t length, char** output);
+void MPInit(Map* MapPtr);
+void GDDefaultGenerator(GameData* GD);

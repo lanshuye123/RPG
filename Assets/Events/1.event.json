@@ -1,12 +1,38 @@
 {
-    "Events":[{
-        "PosX":20,
-        "PosY":20,
-        "Image":0,
-        "Walkable":false,
-        "EventNodes":[{
-            "EventCode":0,
-            "Flags":0
-        }]
-    }]
+  "Events": [
+    {
+      "PosX": 14,
+      "PosY": 14,
+      "Image": 0,
+      "Walkable": false,
+      "Trigger": 5,
+      "EventNodes": [
+        {
+          "EventCode": 1,
+          "Flags": 7
+        },
+        {
+          "EventCode": 1,
+          "Flags": 8
+        },
+        {
+          "EventCode": 4,
+          "Flags": 0
+        }
+      ]
+    },
+    {
+      "PosX": -1,
+      "PosY": -1,
+      "Image": 0,
+      "Walkable": false,
+      "Trigger": 0,
+      "EventNodes": [
+        {
+          "EventCode": 1,
+          "Flags": 6
+        }
+      ]
+    }
+  ]
 }

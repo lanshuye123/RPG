@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <threads.h>
 //以上是C语言标准库(LibraryC)
 
 #include <setjmp.h>
@@ -35,3 +36,15 @@
 
 #include <cJSON.h>
 //使用cJSON解析JSON文件，包括events和网络请求中的若干细节
+
+#include <openssl/core.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
+#pragma comment(lib,"libssl.lib")
+#pragma comment(lib,"libcrypto.lib")
+//使用openssl实现BASE64
+
+#include <curl/curl.h>
+#pragma comment(lib,"libcurl.lib")
+//使用libcurl实现网络存档、读档
