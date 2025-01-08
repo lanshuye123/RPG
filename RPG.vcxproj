@@ -76,8 +76,9 @@
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <LinkKeyFile>D:\Codes\sign\ExportedCert.pfx</LinkKeyFile>
-    <LinkDelaySign>true</LinkDelaySign>
+    <LinkKeyFile>
+    </LinkKeyFile>
+    <LinkDelaySign>false</LinkDelaySign>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
@@ -85,8 +86,9 @@
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <LinkKeyFile>D:\Codes\sign\ExportedCert.pfx</LinkKeyFile>
-    <LinkDelaySign>true</LinkDelaySign>
+    <LinkKeyFile>
+    </LinkKeyFile>
+    <LinkDelaySign>false</LinkDelaySign>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
