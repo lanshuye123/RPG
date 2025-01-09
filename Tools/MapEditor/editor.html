@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Map Editor</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    #controls, #tileset, #map {
+        display: inline-block;
+        vertical-align: top;
+    }
+    canvas {
+        border: 1px solid black;
+    }
+    .selected-tile-border {
+        stroke: black;
+        stroke-width: 2;
+        fill: none;
+    }
+    .walkable-indicator {
+        stroke: blue;
+        stroke-width: 2;
+        fill: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="controls">
+    <button onclick="newMap()">New Map</button>
+    <input type="file" id="loadFile" onchange="loadMap()">
+    <button onclick="saveMap()">Save Map</button>
+    <div id="mapDetails"></div>
+</div>
+
+<div id="tileset"></div>
+<div id="map"></div>
+
+<script>
+const TILE_SIZE = 64;
+const WALKABLE_INDICATOR_SIZE = 48; // Size for walkable indicators
+
+let tilesetImage, mapCanvas, tilesetCanvas, contextMap, contextTileset, selectedTileId = 0;
+let mapWidth = 0, mapHeight = 0;
+let blocks = [];
+let selectedTile = null; // Track the currently selected tile
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 初始化Canvas
+    tilesetCanvas = document.createElement('canvas');
+    tilesetCanvas.width = 8 * TILE_SIZE;
+    tilesetCanvas.height = 0; // 根据实际行数设置
+    document.getElementById('tileset').appendChild(tilesetCanvas);
+    contextTileset = tilesetCanvas.getContext('2d');
+
+    mapCanvas = document.createElement('canvas');
+    document.getElementById('map').appendChild(mapCanvas);
+    contextMap = mapCanvas.getContext('2d');
+
+    loadTileset();
+});
+
+function loadTileset() {
+    const img = new Image();
+    img.src = 'Tile.png';
+    img.onload = function () {
+        tilesetImage = this;
+        drawTileset();
+        tilesetCanvas.addEventListener('click', selectTile);
+    };
+}
+
+function drawTileset() {
+    const rows = Math.ceil(tilesetImage.height / TILE_SIZE);
+    tilesetCanvas.height = rows * TILE_SIZE;
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < 8; x++) {
+            contextTileset.drawImage(
+                tilesetImage,
+                x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+                x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE
+            );
+
+            // Draw a black border around the selected tile in the tileset
+            if (selectedTileId === y * 8 + x) {
+                contextTileset.strokeStyle = 'black';
+                contextTileset.lineWidth = 2;
+                contextTileset.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
+}
+
+function selectTile(event) {
+    const rect = tilesetCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    selectedTileId = Math.floor(y / TILE_SIZE) * 8 + Math.floor(x / TILE_SIZE);
+
+    // Redraw the tileset to update the selection border
+    drawTileset();
+}
+
+
+function newMap() {
+    const width = prompt("Enter map width (min 12):", "12");
+    const height = prompt("Enter map height (min 10):", "10");
+    if (width >= 12 && height >= 10) {
+        initializeMap(width, height);
+    } else {
+        alert("Invalid dimensions. Width must be at least 12 and height at least 10.");
+    }
+}
+
+function initializeMap(width, height) {
+    mapWidth = width;
+    mapHeight = height;
+    mapCanvas.width = width * TILE_SIZE;
+    mapCanvas.height = height * TILE_SIZE;
+    contextMap.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+    blocks = Array.from({ length: width * height }, () => ({ id: 0, walkable: 0xFF }));
+    drawSelectedTileOnMap();
+    mapCanvas.addEventListener('click', editMap);
+}
+
+function drawSelectedTileOnMap() {
+    const row = Math.floor(selectedTileId / 8);
+    const col = selectedTileId % 8;
+    contextMap.drawImage(
+        tilesetImage,
+        col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+        0, 0, TILE_SIZE, TILE_SIZE
+    );
+}
+
+function editMap(event) {
+    const rect = mapCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const tileX = Math.floor(x / TILE_SIZE);
+    const tileY = Math.floor(y / TILE_SIZE);
+
+    const index = tileY * mapWidth + tileX;
+    blocks[index] = { id: selectedTileId, walkable: 0xFF }; // 设置walkable属性
+
+    showTileDetails(tileX, tileY);
+    drawSelectionBox(tileX, tileY); // Draw selection box on the canvas
+}
+
+function drawTileById(id, x, y, drawWalkableIndicator = true) {
+    contextMap.drawImage(
+        tilesetImage,
+        (id % 8) * TILE_SIZE, Math.floor(id / 8) * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+        x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE
+    );
+
+    if (drawWalkableIndicator) {
+        drawWalkableIndicatorForTile(blocks[y * mapWidth + x].walkable, x, y);
+    }
+}
+
+function drawWalkableIndicatorForTile(walkable, x, y) {
+    const offset = (TILE_SIZE - WALKABLE_INDICATOR_SIZE) / 2;
+    const halfSize = WALKABLE_INDICATOR_SIZE / 2;
+
+    // Clear previous indicator
+    contextMap.clearRect(x * TILE_SIZE + offset, y * TILE_SIZE + offset, WALKABLE_INDICATOR_SIZE, WALKABLE_INDICATOR_SIZE);
+
+    // Draw lines or box based on walkable directions
+    if (walkable !== 0xFF) {
+        contextMap.strokeStyle = 'blue';
+        contextMap.lineWidth = 2;
+
+        if ((walkable & 0x08) === 0) { // Up
+            contextMap.beginPath();
+            contextMap.moveTo(x * TILE_SIZE + offset, y * TILE_SIZE + offset);
+            contextMap.lineTo(x * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE, y * TILE_SIZE + offset);
+            contextMap.stroke();
+        }
+        if ((walkable & 0x04) === 0) { // Down
+            contextMap.beginPath();
+            contextMap.moveTo(x * TILE_SIZE + offset, y * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE);
+            contextMap.lineTo(x * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE, y * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE);
+            contextMap.stroke();
+        }
+        if ((walkable & 0x02) === 0) { // Left
+            contextMap.beginPath();
+            contextMap.moveTo(x * TILE_SIZE + offset, y * TILE_SIZE + offset);
+            contextMap.lineTo(x * TILE_SIZE + offset, y * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE);
+            contextMap.stroke();
+        }
+        if ((walkable & 0x01) === 0) { // Right
+            contextMap.beginPath();
+            contextMap.moveTo(x * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE, y * TILE_SIZE + offset);
+            contextMap.lineTo(x * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE, y * TILE_SIZE + offset + WALKABLE_INDICATOR_SIZE);
+            contextMap.stroke();
+        }
+
+        // If completely not walkable, draw a full box
+        if (walkable === 0x00) {
+            contextMap.strokeRect(x * TILE_SIZE + offset, y * TILE_SIZE + offset, WALKABLE_INDICATOR_SIZE, WALKABLE_INDICATOR_SIZE);
+        }
+    }
+}
+
+function drawSelectionBox(tileX, tileY) {
+    contextMap.clearRect(0, 0, mapCanvas.width, mapCanvas.height); // Clear canvas to redraw all tiles
+    
+    // Redraw all tiles with walkable indicators
+    for (let y = 0; y < mapHeight; y++) {
+        for (let x = 0; x < mapWidth; x++) {
+            drawTileById(blocks[y * mapWidth + x].id, x, y);
+        }
+    }
+
+    // Draw selection box around the selected tile
+    if (selectedTile && selectedTile.x === tileX && selectedTile.y === tileY) {
+        contextMap.strokeStyle = 'red';
+        contextMap.lineWidth = 2;
+        contextMap.strokeRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+}
+
+function showTileDetails(tileX, tileY) {
+    const detailsDiv = document.getElementById('mapDetails');
+    const index = tileY * mapWidth + tileX;
+    const block = blocks[index];
+    
+    // Clear previous details and checkboxes
+    detailsDiv.innerHTML = '';
+
+    // Show tile details
+    detailsDiv.innerHTML += `Tile X: ${tileX}, Tile Y: ${tileY}, ID: ${block.id}<br>`;
+    
+    // Create checkboxes for walkable directions
+    const directions = ['Up', 'Down', 'Left', 'Right'];
+    const walkableBits = [8, 4, 2, 1]; // Bit masks for each direction
+    const checked = block.walkable;
+
+    directions.forEach((dir, i) => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = (checked & walkableBits[i]) !== 0;
+        checkbox.onchange = () => updateWalkable(dir, i, checkbox.checked, tileX, tileY);
+        detailsDiv.appendChild(checkbox);
+        detailsDiv.appendChild(document.createTextNode(` ${dir}`));
+        detailsDiv.appendChild(document.createElement('br'));
+    });
+
+    selectedTile = { x: tileX, y: tileY }; // Update selected tile
+}
+
+function saveMap() {
+    const headerSize = 24; // Size of the C struct header in bytes
+    const blockSize = 2; // Size of a Block struct in bytes (id + walkable)
+    const totalSize = headerSize + blockSize * blocks.length;
+
+    const buffer = new ArrayBuffer(totalSize);
+    const view = new DataView(buffer);
+
+    // Write header
+    view.setInt32(0, mapWidth, true); // Little-endian
+    view.setInt32(4, mapHeight, true); // Little-endian
+    view.setUint32(8, 0, true); // Blocks pointer (null)
+    view.setUint32(12, 0, true); // Events pointer (null)
+
+    // Write blocks data
+    for (let i = 0; i < blocks.length; i++) {
+        const offset = headerSize + i * blockSize;
+        view.setUint8(offset, blocks[i].id);
+        view.setUint8(offset + 1, blocks[i].walkable);
+    }
+
+    // Create Blob and download link
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'map.dat'; // File name
+    a.click();
+    URL.revokeObjectURL(url); // Clean up
+}
+
+function loadMap() {
+    const fileInput = document.getElementById('loadFile');
+    const file = fileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const arrayBuffer = e.target.result;
+            const dataView = new DataView(arrayBuffer);
+            // 解析头部信息
+            mapWidth = dataView.getInt32(0, true);
+            mapHeight = dataView.getInt32(4, true);
+            initializeMap(mapWidth, mapHeight);
+            // 解析Block数据
+            for (let i = 0; i < blocks.length; i++) {
+                const offset = 24 + i * 2;
+                blocks[i].id = dataView.getUint8(offset);
+                blocks[i].walkable = dataView.getUint8(offset + 1);
+                drawTileById(blocks[i].id, i % mapWidth, Math.floor(i / mapWidth));
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+function drawTileById(id, x, y) {
+    contextMap.drawImage(
+        tilesetImage,
+        (id % 8) * TILE_SIZE, Math.floor(id / 8) * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+        x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE
+    );
+}
+</script>
+
+</body>
+</html>
